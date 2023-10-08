@@ -1,69 +1,60 @@
-// Importing necessary modules and functions.
+import { saveQuestion, saveQuestionAnswer } from "../utils/api";
 import { showLoading, hideLoading } from "react-redux-loading-bar";
-import { _saveQuestion, _saveQuestionAnswer } from "../utils/_DATA";
-import { updateUsersQuestions } from "./users";
+import { addQuestionUser, addAnswerUser } from "./users";
 
-// Define action type constants.
 export const RECEIVE_QUESTIONS = "RECEIVE_QUESTIONS";
-export const ANSWER_QUESTION = "ANSWER_QUESTION";
-export const SAVE_QUESTION = "SAVE_QUESTION";
+export const ADD_QUESTION = "ADD_QUESTION";
+export const ADD_ANSWER = "ADD_ANSWER";
 
-// Action creator for receiving questions and updating the state.
 export function receiveQuestions(questions) {
   return {
-    type: RECEIVE_QUESTIONS, // Action type indicating receiving questions.
-    questions, // Payload containing the received questions data.
+    type: RECEIVE_QUESTIONS,
+    questions,
   };
 }
 
-// Action creator for handling the answer to a question.
-export function handleAnswerQuestion({ authedUser, qid, answer }) {
-  return (dispatch) => {
-    dispatch(showLoading()); // Show loading bar while processing.
+function addQuestion(question) {
+  return {
+    type: ADD_QUESTION,
+    question,
+  };
+}
 
-    // Call the _saveQuestionAnswer function to save the answer in the data source.
-    return _saveQuestionAnswer({
-      authedUser,
-      qid,
-      answer,
-    })
+function addAnswer(author, qid, answer) {
+  return {
+    type: ADD_ANSWER,
+    author,
+    qid,
+    answer,
+  };
+}
+
+export function handleAddQuestion(optionOneText, optionTwoText) {
+  return (dispatch, getState) => {
+    const { authedUser } = getState();
+
+    dispatch(showLoading());
+
+    return saveQuestion(optionOneText, optionTwoText, authedUser)
+      .then((question) => {
+        dispatch(addQuestion(question));
+        dispatch(addQuestionUser(question));
+      })
+      .then(() => dispatch(hideLoading()));
+  };
+}
+
+export function handleAddAnswer(qid, answer) {
+  return (dispatch, getState) => {
+    const { authedUser } = getState();
+
+    dispatch(showLoading());
+
+    return saveQuestionAnswer(authedUser, qid, answer)
       .then(() => {
-        dispatch(addAnswer({ authedUser, qid, answer })); // Dispatch an action to add the answer to the state.
+        dispatch(addAnswer(authedUser, qid, answer));
+        dispatch(addAnswerUser(authedUser, qid, answer));
       })
-      .then(() => dispatch(hideLoading())); // Hide the loading bar after processing.
-  };
-}
-
-// Action creator for handling the saving of a new question.
-export function handleSaveQuestion(question) {
-  return (dispatch) => {
-    dispatch(showLoading()); // Show loading bar while processing.
-
-    // Call the _saveQuestion function to save the new question in the data source.
-    return _saveQuestion(question)
-      .then((formattedQuestion) => {
-        dispatch(saveQuestion(formattedQuestion)); // Dispatch an action to save the question to the state.
-        dispatch(updateUsersQuestions(formattedQuestion)); // Dispatch an action to update the user's questions.
-      })
-      .then(() => dispatch(hideLoading())) // Hide the loading bar after processing.
-      .catch((e) => console.log("Error from handleSaveQuestion: ", e)); // Handle any errors that occur.
-  };
-}
-
-// Action creator for adding an answer to a question.
-function addAnswer({ authedUser, qid, answer }) {
-  return {
-    type: ANSWER_QUESTION, // Action type indicating adding an answer.
-    authedUser, // Payload containing the authenticated user's id.
-    qid, // Payload containing the question id.
-    answer, // Payload containing the selected answer.
-  };
-}
-
-// Action creator for saving a new question.
-function saveQuestion(question) {
-  return {
-    type: SAVE_QUESTION, // Action type indicating saving a question.
-    question, // Payload containing the formatted question data.
+      .then(() => dispatch(hideLoading()));
   };
 }

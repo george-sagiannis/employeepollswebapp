@@ -1,74 +1,36 @@
-// Importing action types from the actions/users file.
 import {
+  ADD_ANSWER_USER,
+  ADD_QUESTION_USER,
   RECEIVE_USERS,
-  UPDATE_USERS_ANSWERS,
-  UPDATE_USERS_QUESTIONS,
 } from "../actions/users";
 
-// Reducer function for updating a user's answers.
-function userAnswer(state = {}, action) {
-  // Destructure action to get qid and answer.
-  const { qid, answer } = action;
-  // Destructure state to get the current answers.
-  const { answers } = state;
-
-  // Return a new state with the updated answers.
-  return {
-    ...state,
-    answers: {
-      ...answers,
-      [qid]: answer,
-    },
-  };
-}
-
-// Reducer function for updating a user's questions.
-function userQuestion(state = {}, action) {
-  // Destructure action to get id.
-  const { id } = action;
-  // Destructure state to get the current questions.
-  const { questions } = state;
-
-  // Return a new state with the id added to the questions array.
-  return {
-    ...state,
-    questions: questions.concat(id),
-  };
-}
-
-// Main users reducer function.
 export default function users(state = {}, action) {
   switch (action.type) {
-    case RECEIVE_USERS: {
-      // When RECEIVE_USERS action is dispatched, update the state with the received users data.
+    case RECEIVE_USERS:
       return {
         ...state,
         ...action.users,
       };
-    }
-
-    case UPDATE_USERS_ANSWERS: {
-      // When UPDATE_USERS_ANSWERS action is dispatched, update a specific user's answers using the userAnswer reducer.
-      const { authedUser } = action;
-
+    case ADD_QUESTION_USER:
       return {
         ...state,
-        [authedUser]: userAnswer(state[authedUser], action),
+        [action.author]: {
+          ...state[action.author],
+          questions: state[action.author].questions.concat(action.qid),
+        },
       };
-    }
-
-    case UPDATE_USERS_QUESTIONS: {
-      // When UPDATE_USERS_QUESTIONS action is dispatched, update a specific user's questions using the userQuestion reducer.
-      const { authedUser } = action;
-
+    case ADD_ANSWER_USER:
       return {
         ...state,
-        [authedUser]: userQuestion(state[authedUser], action),
+        [action.authedUser]: {
+          ...state[action.authedUser],
+          answers: {
+            ...state[action.authedUser].answers,
+            [action.qid]: action.answer,
+          },
+        },
       };
-    }
-
     default:
-      // If none of the actions match, return the current state.
       return state;
   }
 }

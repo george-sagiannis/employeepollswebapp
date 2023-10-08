@@ -1,5 +1,7 @@
 import thunk from "redux-thunk";
-import logger from "./logger";
-import { applyMiddleware } from "redux";
+import logger from "./logger"; // Import your logger middleware
 
-export default applyMiddleware(thunk, logger);
+// Export the middleware functions as an array
+const middleware = [thunk, logger];
+
+export default middleware;
