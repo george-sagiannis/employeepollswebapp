@@ -1,7 +1,8 @@
 import React from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { Navigate, useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { handleAddAnswer } from "../actions/questions";
+import PageNotFound from "./PageNotFound"; // Import your PageNotFound component
 
 const QuestionPage = () => {
   const { id } = useParams();
@@ -16,12 +17,11 @@ const QuestionPage = () => {
     (question) => question.id === id
   );
 
-  const author = Object.values(users).find(
-    (user) => user.id === question.author
-  );
+  const author = question ? users[question.author] : null;
 
-  if (!authedUser || !question || !author) {
-    return <Navigate to="" />;
+  // Check if the question or author does not exist, and display PageNotFound
+  if (!question || !author) {
+    return <PageNotFound />;
   }
 
   const handleOptionOne = (e) => {
@@ -39,9 +39,15 @@ const QuestionPage = () => {
       question.optionOne.votes.length + question.optionTwo.votes.length;
     switch (option) {
       case "optionOne":
-        return `${(question.optionOne.votes.length / totalVotes) * 100} %`;
+        return `${(
+          (question.optionOne.votes.length / totalVotes) *
+          100
+        ).toFixed(2)} %`;
       case "optionTwo":
-        return `${(question.optionTwo.votes.length / totalVotes) * 100} %`;
+        return `${(
+          (question.optionTwo.votes.length / totalVotes) *
+          100
+        ).toFixed(2)} %`;
       default:
         return "";
     }
@@ -53,11 +59,14 @@ const QuestionPage = () => {
 
   return (
     <div className="center">
-      <h1>Poll by {author.id}</h1>
+      <h1>Poll by {author.name}</h1>
       <div>
-        <img src={author.avatarURL} alt="pic" className="avatar" />
+        <img
+          src={author.avatarURL}
+          alt={`${author.name}'s pic`}
+          className="avatar"
+        />
         <div>{author.name}</div>
-        <div>{question.author}</div>
       </div>
       <div>
         <h2>Would You Rather</h2>
@@ -71,11 +80,7 @@ const QuestionPage = () => {
             onClick={handleOptionOne}
             disabled={isVoted}
           >
-            {!isVoted && (
-              <h3>
-                <p>Click</p>
-              </h3>
-            )}
+            {!isVoted && <h3>Click</h3>}
           </button>
           {isVoted && (
             <p>
@@ -108,11 +113,7 @@ const QuestionPage = () => {
             onClick={handleOptionTwo}
             disabled={isVoted}
           >
-            {!isVoted && (
-              <h3>
-                <p>Click</p>
-              </h3>
-            )}
+            {!isVoted && <h3>Click</h3>}
           </button>
           {isVoted && (
             <p>
